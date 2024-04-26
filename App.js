@@ -1,20 +1,45 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from "react";
+import { BackHandler, Platform } from "react-native";
+import { WebView } from "react-native-webview";
+import { StyleSheet } from "react-native";
+import Constants from "expo-constants";
 
 export default function App() {
+  const webViewRef = useRef(null);
+  const onAndroidBackPress = () => {
+    if (webViewRef.current) {
+      webViewRef.current.goBack();
+      return true; // prevent default behavior (exit app)
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      BackHandler.addEventListener("hardwareBackPress", onAndroidBackPress);
+      return () => {
+        BackHandler.removeEventListener(
+          "hardwareBackPress",
+          onAndroidBackPress
+        );
+      };
+    }
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <WebView 
+      style={styles.container} 
+      source={{ uri: "http://localhost:3000/post-page" }} 
+      allowsbackforwardnavigationgestures={true}
+      ref={webViewRef}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: Constants.statusBarHeight,
   },
 });
+
